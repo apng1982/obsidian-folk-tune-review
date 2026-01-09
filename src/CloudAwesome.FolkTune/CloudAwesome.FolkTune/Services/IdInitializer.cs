@@ -12,7 +12,7 @@ namespace CloudAwesome.FolkTune.Services
         public class InitOptions
         {
             public string VaultPath { get; set; } = string.Empty;
-            public string SubFolder { get; set; } = string.Empty;
+            public string SubFolder { get; set; } = "Tunes/Tunes";
             public bool DryRun { get; set; }
             public int? Limit { get; set; }
             public bool IncludeExisting { get; set; }
@@ -145,16 +145,14 @@ namespace CloudAwesome.FolkTune.Services
             
             var newId = Guid.NewGuid().ToString();
             var idPattern = @"(?m)^id\s*:.*$";
-            string newYaml;
 
             if (Regex.IsMatch(yaml, idPattern))
             {
-                newYaml = Regex.Replace(yaml, idPattern, $"id: \"{newId}\"");
+                yaml = Regex.Replace(yaml, idPattern, "");
             }
-            else
-            {
-                newYaml = "\nid: \"" + newId + "\"" + (yaml.StartsWith("\n") ? "" : "\n") + yaml;
-            }
+
+            yaml = yaml.Trim();
+            var newYaml = "\n" + yaml + (string.IsNullOrWhiteSpace(yaml) ? "" : "\n") + $"id: \"{newId}\"\n";
 
             File.WriteAllText(filePath, "---" + newYaml + body);
         }

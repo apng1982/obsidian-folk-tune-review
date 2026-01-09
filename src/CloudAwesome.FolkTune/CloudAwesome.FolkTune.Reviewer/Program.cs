@@ -12,6 +12,7 @@ app.Configure(config =>
         
     config.AddBranch("ids", ids => {
         ids.SetDescription("Manage tune identifiers");
+        
         ids.AddCommand<IdsInitCommand>("init")
             .WithDescription("Initialize missing tune IDs in markdown files");
     });
