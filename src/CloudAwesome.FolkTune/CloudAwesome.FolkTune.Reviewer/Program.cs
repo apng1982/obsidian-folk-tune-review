@@ -1,3 +1,23 @@
-﻿// See https://aka.ms/new-console-template for more information
+﻿using CloudAwesome.FolkTune.Reviewer.Commands;
+using Spectre.Console.Cli;
 
-Console.WriteLine("Hello, World!");
+var app = new CommandApp();
+
+app.Configure(config =>
+{
+    config.SetApplicationName("tune-review");
+    
+    config.AddCommand<ReviewCommand>("review")
+        .WithDescription("Start an interactive review session");
+        
+    config.AddCommand<PickCommand>("pick")
+        .WithDescription("Show which tunes would be selected for review");
+        
+    config.AddCommand<StatsCommand>("stats")
+        .WithDescription("Show repertoire health statistics");
+        
+    config.AddCommand<SessionCommand>("session")
+        .WithDescription("Mark tunes as played at a session");
+});
+
+return app.Run(args);

@@ -11,4 +11,8 @@
       <PackageReference Include="Spectre.Console.Cli" Version="0.53.1" />
     </ItemGroup>
 
+    <ItemGroup>
+      <ProjectReference Include="..\CloudAwesome.FolkTune\CloudAwesome.FolkTune.csproj" />
+    </ItemGroup>
+
 </Project>

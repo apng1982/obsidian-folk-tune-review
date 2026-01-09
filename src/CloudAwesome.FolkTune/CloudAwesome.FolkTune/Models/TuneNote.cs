@@ -12,7 +12,7 @@ namespace CloudAwesome.FolkTune.Models
         [YamlIgnore]
         public string Title { get; set; }
 
-        [YamlMember(Alias = "id")]
+        [YamlMember(Alias = "tuneId")]
         public string Id { get; set; }
 
         [YamlMember(Alias = "learn")]
