@@ -20,7 +20,7 @@ The requirements are written as an independent backlog suitable for implementati
 ### 1.2 Non-Goals
 - The tool does not render music notation or open files in a UI (optional future enhancement: print paths/links only).
 - The tool does not depend on Obsidian plugins (Dataview etc. are optional and out of scope).
-- The tool does not require modification of existing tune metadata schemas beyond adding a stable `tuneId` (one-time operation).
+- The tool does not require modification of existing tune metadata schemas beyond adding a stable `id` (one-time operation).
 - The tool does not implement full Anki/SM-2 scheduling; it uses a repertoire-maintenance schedule.
 
 ---
@@ -31,16 +31,16 @@ The requirements are written as an independent backlog suitable for implementati
 - Tune notes are Markdown files within an Obsidian vault.
 - Default location within the vault for tunes is `<vaultRoot>/Tunes/Tunes/` 
 - Tune metadata is stored in YAML front matter.
-- The application reads YAML front matter to access tune metadata and the stable tune identifier (`tuneId`).
+- The application reads YAML front matter to access tune metadata and the stable tune identifier (`id`).
 
 ### 2.2 Review State Storage
 - Review state is stored in a single JSON file (the “review store”).
 - Default location (configurable): `<vaultRoot>/.tune-review/reviews.json`
 - The review store must be safe to place outside the vault as well (e.g., user home directory), via CLI flag.
 
-### 2.3 Tune Identifier (`tuneId`)
+### 2.3 Tune Identifier (`id`)
 - Each tune note must contain a stable unique ID in YAML front matter:
-  - `tuneId: "<guid>"`
+  - `id: "<guid>"`
 - This ID must persist across file renames and moves.
 - Normal operation must not edit notes. The only feature allowed to edit notes is the one-time ID initialization/backfill command.
 
@@ -49,7 +49,7 @@ The requirements are written as an independent backlog suitable for implementati
 ## 3. Metadata Conventions in Tune Notes
 
 ### 3.1 Minimum Required Fields
-- `tuneId` (GUID string) — required for linking note ↔ review store.
+- `id` (GUID string) — required for linking note ↔ review store.
 - `learn` (boolean) — required for filtering learned vs learning tunes.
   - The scheduler includes only tunes with `learn != true`. Tunes with `learn: false` or missing `learn` are treated as learned by default (configurable).
 
@@ -105,7 +105,7 @@ Example structure:
   "schemaVersion": 1,
   "updatedUtc": "2025-12-21T12:34:56Z",
   "tunes": {
-    "<tuneId-guid>": {
+    "<id-guid>": {
       "exclude": false,
       "maintenance": "self",
       "last": "2025-12-21",
@@ -120,7 +120,7 @@ Example structure:
 
 ### 4.3 Review Record Fields
 
-For each tuneId, the record may include:
+For each id, the record may include:
 
 * `exclude` (bool, default false)
     * If true, the tune never appears in scheduled review unless explicitly included.
@@ -234,7 +234,7 @@ During review, the user must be able to:
 
 ### 6.2 Command: `ids init`
 
-**Purpose:** One-time initialization to add `tuneId` to notes missing it.
+**Purpose:** One-time initialization to add `id` to notes missing it.
 
 #### Inputs
 
@@ -246,16 +246,16 @@ During review, the user must be able to:
 
 #### Behavior
 
-* Scan tune notes for missing `tuneId`.
+* Scan tune notes for missing `id`.
 * Generate a GUID for each missing ID.
-* Write the `tuneId` into YAML front matter without altering the note body.
+* Write the `id` into YAML front matter without altering the note body.
 * If a note has no YAML, skip this file and record it as a warning. This should be an edge case.
 
 #### Acceptance Criteria
 
 * In dry-run mode, no files are modified; output lists which files would be updated.
-* In write mode, updated notes contain exactly one `tuneId`.
-* If duplicates are detected (same tuneId in multiple notes), command reports them and exits non-zero unless `--force` (optional future).
+* In write mode, updated notes contain exactly one `id`.
+* If duplicates are detected (same id in multiple notes), command reports them and exits non-zero unless `--force` (optional future).
 
 ### 6.3 Command: `review`
 
@@ -278,7 +278,7 @@ During review, the user must be able to:
 * Load tune notes and parse YAML front matter.
 * Filter to learned tunes.
 * Load review store JSON (create if missing).
-* Merge review state in-memory using tuneId.
+* Merge review state in-memory using id.
 * Select N tunes using selection priority.
 * Present tunes one-by-one in the terminal:
 
@@ -334,13 +334,13 @@ Same as `review` except no interactive scoring.
 * Selection inputs (at least one required):
 
     * `--origin <text>` and `--count <n>` (bulk mark)
-    * `--from-file <path>` (list of tuneIds or filenames)
+    * `--from-file <path>` (list of ids or filenames)
     * Optional: `--query <text>` (future)
 * `--dry-run` (optional)
 
 #### Behavior
 
-* Resolve selected tunes by tuneId.
+* Resolve selected tunes by id.
 * Update `sessionLast` to the given date for each.
 * Does not change `maintenance` unless explicitly requested by a flag (optional).
 
@@ -472,15 +472,15 @@ This should apply to fields used for filters such as `origin`, `type`, `whistle`
 ### Epic B — Review Store (JSON) Management
 
 5. **Story B1:** As a user, the tool creates a review store JSON file if it doesn’t exist.
-6. **Story B2:** As a user, the tool loads and merges review state by tuneId.
+6. **Story B2:** As a user, the tool loads and merges review state by id.
 7. **Story B3:** As a user, store writes are atomic and never corrupt the JSON file.
 8. **Story B4:** As a user, the store includes a schemaVersion and can be upgraded later.
 
 ### Epic C — Tune ID Initialization
 
-9. **Story C1:** As a user, I can run `ids init` to add missing `tuneId` values to my tune notes.
+9. **Story C1:** As a user, I can run `ids init` to add missing `id` values to my tune notes.
 10. **Story C2:** As a user, `ids init --dry-run` shows what would change without modifying files.
-11. **Story C3:** As a user, the tool detects duplicate tuneIds and warns me.
+11. **Story C3:** As a user, the tool detects duplicate ids and warns me.
 
 ### Epic D — Scheduling and Selection
 
@@ -527,7 +527,7 @@ This should apply to fields used for filters such as `origin`, `type`, `whistle`
 ## 11. Acceptance Tests (High-Level)
 
 * **AT1:** Running `review` never modifies any Markdown tune note files.
-* **AT2:** Running `ids init` adds `tuneId` exactly once to each eligible tune note missing it.
+* **AT2:** Running `ids init` adds `id` exactly once to each eligible tune note missing it.
 * **AT3:** A tune with `learn: true` never appears in scheduled selection.
 * **AT4:** A tune with store record `exclude: true` never appears unless `--include-excluded`.
 * **AT5:** A tune with `maintenance: "session"` never appears unless `--include-session`.

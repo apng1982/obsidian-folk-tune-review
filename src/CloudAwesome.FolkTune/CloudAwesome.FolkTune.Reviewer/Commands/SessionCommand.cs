@@ -20,7 +20,7 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                 var vaultPath = settings.VaultPath ?? Directory.GetCurrentDirectory();
                 var storePath = settings.StorePath ?? Path.Combine(vaultPath, ".tune-review", "reviews.json");
 
-                var engine = new ReviewEngine(new VaultScanner(), new ReviewStoreManager(), new SelectionService());
+                var engine = new ReviewEngine(new VaultScanner(), new ReviewStoreManager(), new SelectionService(), new IdInitializer());
                 engine.Load(vaultPath, storePath);
 
                 var date = DateTime.Today;

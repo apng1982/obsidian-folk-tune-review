@@ -19,7 +19,7 @@ namespace CloudAwesome.FolkTune.Reviewer.Settings
         public int? Count { get; set; }
 
         [CommandOption("--from-file <PATH>")]
-        [Description("Path to a file containing tuneIds or titles (one per line)")]
+        [Description("Path to a file containing ids or titles (one per line)")]
         public string? FromFile { get; set; }
     }
 }

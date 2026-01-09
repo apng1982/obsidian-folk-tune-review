@@ -10,6 +10,12 @@ app.Configure(config =>
     config.AddCommand<ReviewCommand>("review")
         .WithDescription("Start an interactive review session");
         
+    config.AddBranch("ids", ids => {
+        ids.SetDescription("Manage tune identifiers");
+        ids.AddCommand<IdsInitCommand>("init")
+            .WithDescription("Initialize missing tune IDs in markdown files");
+    });
+        
     config.AddCommand<PickCommand>("pick")
         .WithDescription("Show which tunes would be selected for review");
         

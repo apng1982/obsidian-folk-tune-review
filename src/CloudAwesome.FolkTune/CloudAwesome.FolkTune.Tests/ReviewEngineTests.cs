@@ -20,7 +20,7 @@ namespace CloudAwesome.FolkTune.Tests
             // For these tests, we'll manually set the private fields via reflection or just accept we're doing a bit of integration.
             // Actually, let's just test SubmitReview by ensuring it updates a store we provide.
             
-            _engine = new ReviewEngine(new VaultScanner(), new ReviewStoreManager(), new SelectionService());
+            _engine = new ReviewEngine(new VaultScanner(), new ReviewStoreManager(), new SelectionService(), new IdInitializer());
             _store = new ReviewStore();
             
             // Injecting store and allTunes via reflection for testing logic

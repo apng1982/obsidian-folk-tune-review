@@ -11,16 +11,18 @@ namespace CloudAwesome.FolkTune.Services
         private readonly VaultScanner _scanner;
         private readonly ReviewStoreManager _storeManager;
         private readonly SelectionService _selectionService;
+        private readonly IdInitializer _idInitializer;
         
         private List<TuneNote> _allTunes;
         private ReviewStore _store;
         private string _storePath;
 
-        public ReviewEngine(VaultScanner scanner, ReviewStoreManager storeManager, SelectionService selectionService)
+        public ReviewEngine(VaultScanner scanner, ReviewStoreManager storeManager, SelectionService selectionService, IdInitializer idInitializer)
         {
             _scanner = scanner;
             _storeManager = storeManager;
             _selectionService = selectionService;
+            _idInitializer = idInitializer;
         }
 
         public void Load(string vaultPath, string storePath, string subFolder = null)
@@ -28,6 +30,11 @@ namespace CloudAwesome.FolkTune.Services
             _allTunes = _scanner.Scan(vaultPath, subFolder);
             _store = _storeManager.Load(storePath);
             _storePath = storePath;
+        }
+
+        public IdInitializer.InitResult InitializeIds(IdInitializer.InitOptions options)
+        {
+            return _idInitializer.Initialize(options);
         }
 
         public List<TuneNote> GetReviewCandidates(SelectionService.SelectionOptions options)
@@ -39,10 +46,10 @@ namespace CloudAwesome.FolkTune.Services
             return _selectionService.SelectTunes(_allTunes, _store, options, WikiLinkHelper.ExtractDisplayText);
         }
 
-        public void SubmitReview(string tuneId, int score, string notes = null)
+        public void SubmitReview(string id, int score, string notes = null)
         {
-            EnsureTuneRecord(tuneId);
-            var record = _store.Tunes[tuneId];
+            EnsureTuneRecord(id);
+            var record = _store.Tunes[id];
 
             record.Last = DateTime.Today.ToString("yyyy-MM-dd");
             record.Score = score;
@@ -53,23 +60,23 @@ namespace CloudAwesome.FolkTune.Services
             record.IntervalDays = MapScoreToInterval(score);
         }
 
-        public void MarkAsPlayed(string tuneId, DateTime date)
+        public void MarkAsPlayed(string id, DateTime date)
         {
-            EnsureTuneRecord(tuneId);
-            var record = _store.Tunes[tuneId];
+            EnsureTuneRecord(id);
+            var record = _store.Tunes[id];
             record.SessionLast = date.ToString("yyyy-MM-dd");
         }
 
-        public void ExcludeTune(string tuneId)
+        public void ExcludeTune(string id)
         {
-            EnsureTuneRecord(tuneId);
-            _store.Tunes[tuneId].Exclude = true;
+            EnsureTuneRecord(id);
+            _store.Tunes[id].Exclude = true;
         }
 
-        public void MarkAsSessionMaintained(string tuneId)
+        public void MarkAsSessionMaintained(string id)
         {
-            EnsureTuneRecord(tuneId);
-            _store.Tunes[tuneId].Maintenance = "session";
+            EnsureTuneRecord(id);
+            _store.Tunes[id].Maintenance = "session";
         }
 
         public void Save()
@@ -143,12 +150,12 @@ namespace CloudAwesome.FolkTune.Services
                 .ToList();
         }
 
-        private void EnsureTuneRecord(string tuneId)
+        private void EnsureTuneRecord(string id)
         {
-            if (!_store.Tunes.TryGetValue(tuneId, out var record))
+            if (!_store.Tunes.TryGetValue(id, out var record))
             {
-                var tune = _allTunes.FirstOrDefault(t => t.Id == tuneId);
-                _store.Tunes[tuneId] = new TuneReviewRecord { Name = tune?.Title };
+                var tune = _allTunes.FirstOrDefault(t => t.Id == id);
+                _store.Tunes[id] = new TuneReviewRecord { Name = tune?.Title };
             }
         }
 

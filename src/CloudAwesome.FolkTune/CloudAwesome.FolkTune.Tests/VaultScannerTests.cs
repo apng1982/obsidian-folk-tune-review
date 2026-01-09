@@ -33,7 +33,7 @@ namespace CloudAwesome.FolkTune.Tests
         {
             var filePath = Path.Combine(_tempVaultPath, "TestTune.md");
             var content = @"---
-tuneId: ""12345""
+id: ""12345""
 learn: false
 origin: ""[[Ref/Geo/Scottish|Scottish]]""
 ---
@@ -56,12 +56,12 @@ Some body content";
             var tunesPath = Path.Combine(_tempVaultPath, "Tunes", "Tunes");
             Directory.CreateDirectory(tunesPath);
             
-            File.WriteAllText(Path.Combine(tunesPath, "Tune1.md"), "---\ntuneId: \"1\"\n---");
-            File.WriteAllText(Path.Combine(tunesPath, "Tune2.md"), "---\ntuneId: \"2\"\n---");
+            File.WriteAllText(Path.Combine(tunesPath, "Tune1.md"), "---\nid: \"1\"\n---");
+            File.WriteAllText(Path.Combine(tunesPath, "Tune2.md"), "---\nid: \"2\"\n---");
             
             var obsidianPath = Path.Combine(_tempVaultPath, ".obsidian");
             Directory.CreateDirectory(obsidianPath);
-            File.WriteAllText(Path.Combine(obsidianPath, "config.md"), "---\ntuneId: \"hidden\"\n---");
+            File.WriteAllText(Path.Combine(obsidianPath, "config.md"), "---\nid: \"hidden\"\n---");
 
             var scanner = new VaultScanner();
             var results = scanner.Scan(_tempVaultPath);
