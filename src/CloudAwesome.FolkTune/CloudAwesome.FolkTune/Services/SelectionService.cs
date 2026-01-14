@@ -59,12 +59,13 @@ namespace CloudAwesome.FolkTune.Services
             // 2. Then eligible never-reviewed tunes
             var neverReviewed = tuneStates
                 .Where(ts => ts.DueInfo.NeverReviewed)
+                .OrderBy(_ => Random.Shared.Next())
                 .Select(ts => ts.Tune);
 
             // 3. Then top-up with eligible non-due tunes sorted by oldest effectiveLast
             var nonDue = tuneStates
                 .Where(ts => !ts.DueInfo.IsOverdue && !ts.DueInfo.NeverReviewed)
-                .OrderBy(ts => ts.DueInfo.EffectiveLast)
+                .OrderBy(_ => Random.Shared.Next())
                 .Select(ts => ts.Tune);
 
             return overdue
