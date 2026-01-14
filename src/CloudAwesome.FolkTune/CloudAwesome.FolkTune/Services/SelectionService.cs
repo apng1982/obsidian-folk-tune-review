@@ -15,6 +15,7 @@ namespace CloudAwesome.FolkTune.Services
             public string OriginFilter { get; set; }
             public int DefaultInterval { get; set; } = 365;
             public DateTime Today { get; set; } = DateTime.Today;
+            public bool Randomize { get; set; } = true;
         }
 
         public List<TuneNote> SelectTunes(
@@ -59,13 +60,13 @@ namespace CloudAwesome.FolkTune.Services
             // 2. Then eligible never-reviewed tunes
             var neverReviewed = tuneStates
                 .Where(ts => ts.DueInfo.NeverReviewed)
-                .OrderBy(_ => Random.Shared.Next())
+                .OrderBy(_ => options.Randomize ? Random.Shared.Next() : 0)
                 .Select(ts => ts.Tune);
 
             // 3. Then top-up with eligible non-due tunes sorted by oldest effectiveLast
             var nonDue = tuneStates
                 .Where(ts => !ts.DueInfo.IsOverdue && !ts.DueInfo.NeverReviewed)
-                .OrderBy(_ => Random.Shared.Next())
+                .OrderBy(_ => options.Randomize ? Random.Shared.Next() : 0)
                 .Select(ts => ts.Tune);
 
             return overdue

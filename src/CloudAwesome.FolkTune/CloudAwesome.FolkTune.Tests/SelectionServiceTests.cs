@@ -47,7 +47,8 @@ namespace CloudAwesome.FolkTune.Tests
             { 
                 Count = 5, 
                 Today = new DateTime(2026, 1, 1), 
-                DefaultInterval = 365 
+                DefaultInterval = 365,
+                Randomize = false
             };
 
             var tunes = new List<TuneNote>
