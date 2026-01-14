@@ -17,6 +17,7 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
             try
             {
                 var vaultPath = settings.VaultPath ?? Directory.GetCurrentDirectory();
+                var vaultName = Path.GetFileName(vaultPath.TrimEnd(Path.DirectorySeparatorChar));
                 var storePath = settings.StorePath ?? Path.Combine(vaultPath, ".tune-review", "reviews.json");
 
                 var engine = new ReviewEngine(new VaultScanner(), new ReviewStoreManager(), new SelectionService(), new IdInitializer());
@@ -45,7 +46,11 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                 foreach (var tune in candidates)
                 {
                     AnsiConsole.Clear();
-                    AnsiConsole.Write(new Rule($"[bold blue]Review: {tune.Title}[/]").LeftJustified());
+                    
+                    var encodedTitle = Uri.EscapeDataString(tune.Title ?? string.Empty);
+                    var obsidianUrl = $"obsidian://open?vault={Uri.EscapeDataString(vaultName)}&file={encodedTitle}";
+                        
+                    AnsiConsole.Write(new Rule($"[bold blue]Review: [link={obsidianUrl}]{tune.Title}[/][/]").LeftJustified());
                     
                     var table = new Table().NoBorder();
                     table.AddColumn("Field");
@@ -54,10 +59,6 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     table.AddRow("Origin", WikiLinkHelper.ExtractDisplayText(tune.Origin));
                     table.AddRow("Type", WikiLinkHelper.ExtractDisplayText(tune.Type));
                     table.AddRow("Key", WikiLinkHelper.ExtractDisplayText(tune.Key));
-                    if (settings.PrintPaths)
-                    {
-                        table.AddRow("Path", tune.FilePath ?? string.Empty);
-                    }
                     
                     AnsiConsole.Write(table);
                     AnsiConsole.WriteLine();

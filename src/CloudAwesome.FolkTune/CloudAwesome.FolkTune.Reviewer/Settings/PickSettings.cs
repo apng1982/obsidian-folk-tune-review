@@ -21,9 +21,6 @@ namespace CloudAwesome.FolkTune.Reviewer.Settings
         [CommandOption("--include-excluded")]
         [Description("Include tunes marked as excluded")]
         public bool IncludeExcluded { get; set; }
-        
-        [CommandOption("--print-paths")]
-        [Description("Print full file paths")]
-        public bool PrintPaths { get; set; }
+
     }
 }
