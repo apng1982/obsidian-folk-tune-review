@@ -145,9 +145,23 @@ namespace CloudAwesome.FolkTune.Services
         {
             if (_allTunes == null) throw new InvalidOperationException("Engine not loaded.");
             
+            var sanitizedQuery = SanitizeForComparison(query);
+            
             return _allTunes
-                .Where(t => t.Id == query || t.Title.Equals(query, StringComparison.OrdinalIgnoreCase))
+                .Where(t => t.Id == query || SanitizeForComparison(t.Title).Equals(sanitizedQuery, StringComparison.OrdinalIgnoreCase))
                 .ToList();
+        }
+        
+        private string SanitizeForComparison(string input)
+        {
+            if (string.IsNullOrEmpty(input)) return string.Empty;
+            
+            return input
+                .Replace("’", "'") // Normalize smart quotes
+                .Replace("‘", "'")
+                .Replace("“", "\"")
+                .Replace("”", "\"")
+                .Trim();
         }
 
         private void EnsureTuneRecord(string id)

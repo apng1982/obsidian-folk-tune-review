@@ -28,7 +28,23 @@ namespace CloudAwesome.FolkTune.Tests
             storeField.SetValue(_engine, _store);
             
             var allTunesField = typeof(ReviewEngine).GetField("_allTunes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
-            allTunesField.SetValue(_engine, new List<TuneNote> { new TuneNote { Id = "123", Title = "Test Tune" } });
+            allTunesField.SetValue(_engine, new List<TuneNote> { 
+                new TuneNote { Id = "123", Title = "Test Tune" },
+                new TuneNote { Id = "456", Title = "Frank's Reel" },
+                new TuneNote { Id = "789", Title = "Margret’s Waltz" } // Uses curly quote in store
+            });
+        }
+        
+        [Test]
+        [TestCase("Frank's Reel")]
+        [TestCase("Margret's Waltz")] // Searching with straight quote
+        [TestCase("Margret’s Waltz")] // Searching with curly quote
+        public void FindTunes_HandlesApostrophesAndSmartQuotes(string query)
+        {
+            var results = _engine.FindTunes(query);
+            
+            Assert.That(results.Count, Is.GreaterThan(0), $"Failed to find tune with query: {query}");
+            Assert.That(results[0].Title, Does.Contain("Reel").Or.Contains("Waltz"));
         }
 
         [Test]
