@@ -95,5 +95,36 @@ namespace CloudAwesome.FolkTune.Tests
             Assert.That(results.Count, Is.EqualTo(1));
             Assert.That(results[0].Title, Is.EqualTo("Test Tune"));
         }
+        
+        [Test]
+        public void FindTunes_WhenNoMatch_ReturnsEmptyList()
+        {
+            var results = _engine.FindTunes("Non-existent Tune");
+            Assert.That(results, Is.Empty);
+        }
+
+        [Test]
+        public void FindTunes_IsCaseInsensitive()
+        {
+            var results = _engine.FindTunes("test tune");
+            Assert.That(results.Count, Is.EqualTo(1));
+            Assert.That(results[0].Title, Is.EqualTo("Test Tune"));
+        }
+
+        [Test]
+        public void FindTunes_HandlesMultipleMatches()
+        {
+            // Set up engine with duplicate titles
+            var allTunesField = typeof(ReviewEngine).GetField("_allTunes", System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance);
+            allTunesField.SetValue(_engine, new List<TuneNote> 
+            { 
+                new TuneNote { Id = "ID1", Title = "Duplicate Title" },
+                new TuneNote { Id = "ID2", Title = "Duplicate Title" }
+            });
+
+            var results = _engine.FindTunes("Duplicate Title");
+            
+            Assert.That(results.Count, Is.EqualTo(2));
+        }
     }
 }

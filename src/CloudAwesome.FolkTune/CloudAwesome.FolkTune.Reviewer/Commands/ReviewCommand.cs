@@ -5,6 +5,7 @@ using System.Threading;
 using CloudAwesome.FolkTune.Reviewer.Settings;
 using CloudAwesome.FolkTune.Services;
 using CloudAwesome.FolkTune.Helpers;
+using CloudAwesome.FolkTune.Models;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -31,9 +32,28 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     IncludeSession = settings.IncludeSession,
                     Today = DateTime.Today
                 };
-
-                var candidates = engine.GetReviewCandidates(options);
-
+                
+                List<TuneNote> candidates;
+                if (!string.IsNullOrEmpty(settings.Tune))
+                {
+                    candidates = engine.FindTunes(settings.Tune);
+                    if (candidates.Count == 0)
+                    {
+                        AnsiConsole.MarkupLine($"[red]Could not find tune matching:[/] [yellow]{settings.Tune}[/]");
+                        return 1;
+                    }
+                    if (candidates.Count > 1)
+                    {
+                        AnsiConsole.MarkupLine($"[yellow]Found multiple matches for '{settings.Tune}'. Please be more specific.[/]");
+                        foreach(var c in candidates) AnsiConsole.MarkupLine($" - {c.Title}");
+                        return 1;
+                    }
+                }
+                else
+                {
+                    candidates = engine.GetReviewCandidates(options);
+                }
+                
                 if (candidates.Count == 0)
                 {
                     AnsiConsole.MarkupLine("[yellow]No tunes found matching the criteria.[/]");
