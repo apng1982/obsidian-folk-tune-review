@@ -1,0 +1,49 @@
+name: Publish CLI to NuGet
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build-and-publish:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          # This will automatically pick up the NUGET_AUTH_TOKEN if configured for a registry
+          # but we'll manually push in the final step for clarity.
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
+
+      - name: Run Unit Tests
+        run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
+        # If tests fail, the workflow will stop here automatically.
+
+      - name: Set Version and Pack
+        shell: pwsh
+        run: |
+          # Generate calendar-based version number
+          $version = (Get-Date).ToString("yyyy.MM.dd.HHmm")
+          echo "Version being published: $version"
+          
+          # Pack the CLI project as a tool
+          # Ensure the .csproj has <PackAsTool>true</PackAsTool>
+          dotnet pack CloudAwesome.FolkTune.Reviewer/CloudAwesome.FolkTune.Reviewer.csproj `
+            --configuration Release `
+            --output ./dist `
+            /p:PackageVersion=$version `
+            /p:PackageReadmeFile=nuget-readme.md
+
+      - name: Publish to NuGet
+        run: dotnet nuget push ./dist/*.nupkg --api-key ${{ secrets.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate
