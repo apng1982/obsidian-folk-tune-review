@@ -7,6 +7,11 @@ on:
 jobs:
   build-and-publish:
     runs-on: ubuntu-latest
+
+    # Set the working directory for all steps in this job
+    defaults:
+      run:
+        working-directory: src/CloudAwesome.FolkTune
     
     steps:
       - uses: actions/checkout@v4
