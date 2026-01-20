@@ -181,7 +181,8 @@ namespace CloudAwesome.FolkTune.Services
                 1 => 10,
                 2 => 30,
                 3 => 90,
-                4 => 365,
+                4 => 180,
+                5 => 365,
                 _ => 365
             };
         }

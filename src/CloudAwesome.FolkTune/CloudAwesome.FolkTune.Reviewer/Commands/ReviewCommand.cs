@@ -1,7 +1,3 @@
-using System;
-using System.IO;
-using System.Linq;
-using System.Threading;
 using CloudAwesome.FolkTune.Reviewer.Settings;
 using CloudAwesome.FolkTune.Services;
 using CloudAwesome.FolkTune.Helpers;
@@ -69,26 +65,37 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     
                     var encodedTitle = Uri.EscapeDataString(tune.Title ?? string.Empty);
                     var obsidianUrl = $"obsidian://open?vault={Uri.EscapeDataString(vaultName)}&file={encodedTitle}";
-                        
+                    
                     AnsiConsole.Write(new Rule($"[bold blue]Review: [link={obsidianUrl}]{tune.Title}[/][/]").LeftJustified());
                     
                     var table = new Table().NoBorder();
                     table.AddColumn("Field");
                     table.AddColumn("Value");
                     
-                    table.AddRow("Origin", WikiLinkHelper.ExtractDisplayText(tune.Origin));
                     table.AddRow("Type", WikiLinkHelper.ExtractDisplayText(tune.Type));
                     table.AddRow("Key", WikiLinkHelper.ExtractDisplayText(tune.Key));
+                    table.AddRow("Whistle", WikiLinkHelper.ExtractDisplayText(tune.Whistle));
+                    table.AddRow("Origin", WikiLinkHelper.ExtractDisplayText(tune.Origin));
+                    table.AddRow("Composer", WikiLinkHelper.ExtractDisplayText(tune.Composer));
                     
                     AnsiConsole.Write(table);
                     AnsiConsole.WriteLine();
 
-                    var prompt = new TextPrompt<string>("Action [0-4, s, x, m, n]:")
+                    AnsiConsole.Write(new Rule($"[bold blue]Inputs: [/]").LeftJustified());
+                    AnsiConsole.WriteLine("'s' to Skip this tune");
+                    AnsiConsole.WriteLine("'x' to eXclude this tune");
+                    AnsiConsole.WriteLine("'m' to mark this tune as Maintained by regular sessions (e.g. tunes that are played every week)");
+                    AnsiConsole.WriteLine("'n' to submit add Notes to this tune's review");
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.WriteLine("or a number from 0-5 on how well the review went. 0 - Very poor, 5 - Excellent");
+                    AnsiConsole.Write(new Rule());
+                    
+                    var prompt = new TextPrompt<string>("Type: 0-5, s, x, m, n")
                         .Validate(input => 
                         {
                             return input.ToLower() switch
                             {
-                                "0" or "1" or "2" or "3" or "4" or "s" or "x" or "m" or "n" => ValidationResult.Success(),
+                                "0" or "1" or "2" or "3" or "4" or "5" or "s" or "x" or "m" or "n" => ValidationResult.Success(),
                                 _ => ValidationResult.Error("[red]Invalid action[/]")
                             };
                         });
@@ -140,7 +147,7 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                 if (!settings.DryRun && candidates.Count > 0)
                 {
                     engine.Save();
-                    AnsiConsole.MarkupLine("[green]Review store updated.[/]");
+                    AnsiConsole.MarkupLine($"[green]Review store updated.[/] ({storePath}) ");
                 }
                 else if (settings.DryRun)
                 {
