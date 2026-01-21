@@ -66,9 +66,15 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     var encodedTitle = Uri.EscapeDataString(tune.Title ?? string.Empty);
                     var obsidianUrl = $"obsidian://open?vault={Uri.EscapeDataString(vaultName)}&file={encodedTitle}";
                     
-                    AnsiConsole.Write(new Rule($"[bold blue]Review: [link={obsidianUrl}]{tune.Title}[/][/]").LeftJustified());
+                    AnsiConsole.Write(new Rule().LeftJustified());
                     
-                    var table = new Table().NoBorder();
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine($"[bold blue][link={obsidianUrl}]{tune.Title}[/][/]");
+                    AnsiConsole.WriteLine();
+                    AnsiConsole.MarkupLine("[gray]Ctrl + Click on the link above to open this tune in Obsidian.[/]");
+                    AnsiConsole.WriteLine();
+                    
+                    var table = new Table();
                     table.AddColumn("Field");
                     table.AddColumn("Value");
                     
@@ -82,12 +88,12 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     AnsiConsole.WriteLine();
 
                     AnsiConsole.Write(new Rule($"[bold blue]Inputs: [/]").LeftJustified());
-                    AnsiConsole.WriteLine("'s' to Skip this tune");
-                    AnsiConsole.WriteLine("'x' to eXclude this tune");
-                    AnsiConsole.WriteLine("'m' to mark this tune as Maintained by regular sessions (e.g. tunes that are played every week)");
-                    AnsiConsole.WriteLine("'n' to submit add Notes to this tune's review");
+                    AnsiConsole.MarkupLine("[gray]'s' to Skip this tune[/]");
+                    AnsiConsole.MarkupLine("[gray]'x' to eXclude this tune[/]");
+                    AnsiConsole.MarkupLine("[gray]'m' to mark this tune as Maintained by regular sessions (e.g. tunes that are played every week)[/]");
+                    AnsiConsole.MarkupLine("[gray]'n' to submit add Notes to this tune's review[/]");
                     AnsiConsole.WriteLine();
-                    AnsiConsole.WriteLine("or a number from 0-5 on how well the review went. 0 - Very poor, 5 - Excellent");
+                    AnsiConsole.MarkupLine("[gray]or a number from 0-5 on how well the review went. 0 - Very poor, 5 - Excellent[/]");
                     AnsiConsole.Write(new Rule());
                     
                     var prompt = new TextPrompt<string>("Type: 0-5, s, x, m, n")

@@ -10,10 +10,10 @@ app.Configure(config =>
     config.AddCommand<ReviewCommand>("review")
         .WithDescription("Start an interactive review session");
         
-    config.AddBranch("ids", ids => {
-        ids.SetDescription("Manage tune identifiers");
+    config.AddBranch("admin", ids => {
+        ids.SetDescription("Automate administrative tasks with your vault required to use and maintain this CLI");
         
-        ids.AddCommand<IdsInitCommand>("init")
+        ids.AddCommand<IdsInitCommand>("id-init")
             .WithDescription("Initialize missing tune IDs in markdown files");
     });
         
