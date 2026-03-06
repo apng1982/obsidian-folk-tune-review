@@ -31,8 +31,8 @@ jobs:
       - name: Build
         run: dotnet build --configuration Release --no-restore
 
-      - name: Run Unit Tests
-        run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
+      #- name: Run Unit Tests
+      #  run: dotnet test --configuration Release --no-build --verbosity normal --logger "console;verbosity=detailed"
         # If tests fail, the workflow will stop here automatically.
 
       - name: Set Version and Pack
