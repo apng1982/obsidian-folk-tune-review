@@ -1,9 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using CloudAwesome.FolkTune.Models;
 using CloudAwesome.FolkTune.Services;
-using NUnit.Framework;
 
 namespace CloudAwesome.FolkTune.Tests
 {
@@ -51,25 +46,65 @@ Some body content";
         }
 
         [Test]
-        public void Scan_FindsAllMarkdownFiles()
+        public void Scan_DefaultsToTunesTunesDirectory()
         {
             var tunesPath = Path.Combine(_tempVaultPath, "Tunes", "Tunes");
+            var setsPath = Path.Combine(_tempVaultPath, "Tunes", "Sets");
+            var queriesPath = Path.Combine(_tempVaultPath, "Queries");
+            var obsidianPath = Path.Combine(_tempVaultPath, ".obsidian");
+
             Directory.CreateDirectory(tunesPath);
-            
+            Directory.CreateDirectory(setsPath);
+            Directory.CreateDirectory(queriesPath);
+            Directory.CreateDirectory(obsidianPath);
+
             File.WriteAllText(Path.Combine(tunesPath, "Tune1.md"), "---\nid: \"1\"\n---");
             File.WriteAllText(Path.Combine(tunesPath, "Tune2.md"), "---\nid: \"2\"\n---");
-            
-            var obsidianPath = Path.Combine(_tempVaultPath, ".obsidian");
-            Directory.CreateDirectory(obsidianPath);
+            File.WriteAllText(Path.Combine(setsPath, "Set1.md"), "---\nid: \"set-1\"\n---");
+            File.WriteAllText(Path.Combine(queriesPath, "Query1.md"), "---\nid: \"query-1\"\n---");
             File.WriteAllText(Path.Combine(obsidianPath, "config.md"), "---\nid: \"hidden\"\n---");
 
             var scanner = new VaultScanner();
-            var results = scanner.Scan(_tempVaultPath);
+            var results = scanner.ScanTunes(_tempVaultPath);
 
             Assert.That(results.Count, Is.EqualTo(2));
             Assert.That(results.Exists(t => t.Title == "Tune1"), Is.True);
             Assert.That(results.Exists(t => t.Title == "Tune2"), Is.True);
+            Assert.That(results.Exists(t => t.Title == "Set1"), Is.False);
+            Assert.That(results.Exists(t => t.Title == "Query1"), Is.False);
             Assert.That(results.Exists(t => t.Title == "config"), Is.False);
+        }
+
+        [Test]
+        public void Scan_SetsTarget_ScansOnlyTunesSetsDirectory()
+        {
+            var tunesPath = Path.Combine(_tempVaultPath, "Tunes", "Tunes");
+            var setsPath = Path.Combine(_tempVaultPath, "Tunes", "Sets");
+
+            Directory.CreateDirectory(tunesPath);
+            Directory.CreateDirectory(setsPath);
+
+            File.WriteAllText(Path.Combine(tunesPath, "Tune1.md"), "---\nid: \"1\"\n---");
+            File.WriteAllText(Path.Combine(setsPath, "Set1.md"), "---\nid: \"set-1\"\n---");
+            File.WriteAllText(Path.Combine(setsPath, "Set2.md"), "---\nid: \"set-2\"\n---");
+
+            var scanner = new VaultScanner();
+            var results = scanner.ScanSets(_tempVaultPath);
+
+            Assert.That(results.Count, Is.EqualTo(2));
+            Assert.That(results.Exists(t => t.Title == "Set1"), Is.True);
+            Assert.That(results.Exists(t => t.Title == "Set2"), Is.True);
+            Assert.That(results.Exists(t => t.Title == "Tune1"), Is.False);
+        }
+
+        [Test]
+        public void Scan_WhenTunesDirectoryMissing_ThrowsDirectoryNotFoundException()
+        {
+            var scanner = new VaultScanner();
+
+            var ex = Assert.Throws<DirectoryNotFoundException>(() => scanner.ScanTunes(_tempVaultPath));
+
+            Assert.That(ex!.Message, Does.Contain(Path.Combine("Tunes", "Tunes")));
         }
     }
 }

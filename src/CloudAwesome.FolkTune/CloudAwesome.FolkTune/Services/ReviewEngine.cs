@@ -12,24 +12,64 @@ namespace CloudAwesome.FolkTune.Services
         private readonly ReviewStoreManager _storeManager;
         private readonly SelectionService _selectionService;
         private readonly IdInitializer _idInitializer;
+        private readonly VaultValidator _vaultValidator;
         
         private List<TuneNote> _allTunes;
         private ReviewStore _store;
         private string _storePath;
 
-        public ReviewEngine(VaultScanner scanner, ReviewStoreManager storeManager, SelectionService selectionService, IdInitializer idInitializer)
+        public ReviewEngine(
+            VaultScanner vaultScanner,
+            ReviewStoreManager reviewStoreManager,
+            SelectionService selectionService,
+            IdInitializer idInitializer)
+            : this(
+                vaultScanner, 
+                reviewStoreManager, 
+                selectionService, 
+                idInitializer, 
+                new VaultValidator()) { }
+        
+        public ReviewEngine(
+            VaultScanner scanner, 
+            ReviewStoreManager storeManager, 
+            SelectionService selectionService, 
+            IdInitializer idInitializer,
+            VaultValidator vaultValidator)
         {
             _scanner = scanner;
             _storeManager = storeManager;
             _selectionService = selectionService;
             _idInitializer = idInitializer;
+            _vaultValidator = vaultValidator;
         }
 
-        public void Load(string vaultPath, string storePath, string subFolder = null)
+        public ReviewEngineLoadResult Load(string vaultPath, string? storePath = null)
         {
-            _allTunes = _scanner.Scan(vaultPath, subFolder);
-            _store = _storeManager.Load(storePath);
-            _storePath = storePath;
+            if (string.IsNullOrWhiteSpace(vaultPath))
+            {
+                throw new DirectoryNotFoundException("A vault path is required.");
+            }
+
+            var resolvedVaultPath = Path.GetFullPath(vaultPath);
+            _vaultValidator.ValidateReviewVault(resolvedVaultPath, VaultScanTarget.Tunes);
+
+            var resolvedStorePath = string.IsNullOrWhiteSpace(storePath)
+                ? VaultStructure.GetDefaultReviewStorePath(resolvedVaultPath)
+                : Path.GetFullPath(storePath);
+
+            _allTunes = _scanner.ScanTunes(resolvedVaultPath);
+
+            var (store, created) = _storeManager.LoadOrCreate(resolvedStorePath);
+            _store = store;
+
+            return new ReviewEngineLoadResult
+            {
+                VaultPath = resolvedVaultPath,
+                ScanPath = VaultStructure.GetScanDirectory(resolvedVaultPath, VaultScanTarget.Tunes),
+                StorePath = resolvedStorePath,
+                ReviewStoreCreated = created
+            };
         }
 
         public IdInitializer.InitResult InitializeIds(IdInitializer.InitOptions options)

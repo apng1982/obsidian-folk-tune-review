@@ -1,9 +1,7 @@
-using System;
-using System.IO;
-using System.Threading;
 using CloudAwesome.FolkTune.Reviewer.Settings;
 using CloudAwesome.FolkTune.Services;
 using CloudAwesome.FolkTune.Helpers;
+using CloudAwesome.FolkTune.Reviewer.Helpers;
 using Spectre.Console;
 using Spectre.Console.Cli;
 
@@ -17,11 +15,13 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
             {
                 var vaultPath = settings.VaultPath ?? Directory.GetCurrentDirectory();
                 var vaultName = Path.GetFileName(vaultPath.TrimEnd(Path.DirectorySeparatorChar));
-                var storePath = settings.StorePath ?? Path.Combine(vaultPath, ".tune-review", "reviews.json");
+                var storePath = settings.StorePath ?? VaultStructure.GetDefaultReviewStorePath(vaultPath);
 
                 var engine = new ReviewEngine(new VaultScanner(), new ReviewStoreManager(), new SelectionService(), new IdInitializer());
-                engine.Load(vaultPath, storePath);
+                var loadResult = engine.Load(vaultPath, storePath);
 
+                CommandOutputHelper.WriteReviewStoreCreatedMessage(loadResult);
+                
                 var options = new SelectionService.SelectionOptions
                 {
                     Count = settings.Count,

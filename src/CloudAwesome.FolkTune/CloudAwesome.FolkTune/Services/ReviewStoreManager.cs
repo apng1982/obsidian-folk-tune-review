@@ -1,5 +1,3 @@
-using System;
-using System.IO;
 using CloudAwesome.FolkTune.Models;
 using Newtonsoft.Json;
 
@@ -20,6 +18,30 @@ namespace CloudAwesome.FolkTune.Services
 
             var json = File.ReadAllText(storePath);
             return JsonConvert.DeserializeObject<ReviewStore>(json);
+        }
+        
+        public (ReviewStore Store, bool Created) LoadOrCreate(string storePath)
+        {
+            if (File.Exists(storePath))
+            {
+                return (Load(storePath), false);
+            }
+
+            var directory = Path.GetDirectoryName(storePath);
+            if (!string.IsNullOrWhiteSpace(directory) && !Directory.Exists(directory))
+            {
+                Directory.CreateDirectory(directory);
+            }
+
+            var store = new ReviewStore
+            {
+                SchemaVersion = 1,
+                UpdatedUtc = DateTime.UtcNow
+            };
+
+            Save(storePath, store);
+
+            return (store, true);
         }
 
         public void Save(string storePath, ReviewStore store)

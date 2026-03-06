@@ -20,15 +20,23 @@ namespace CloudAwesome.FolkTune.Services
                 .Build();
         }
 
-        public List<TuneNote> Scan(string vaultPath, string subFolder = null)
+        public List<TuneNote> ScanTunes(string vaultPath)
         {
-            var searchPath = string.IsNullOrEmpty(subFolder) 
-                ? vaultPath 
-                : Path.Combine(vaultPath, subFolder);
+            return Scan(vaultPath, VaultScanTarget.Tunes);
+        }
+        
+        public List<TuneNote> ScanSets(string vaultPath)
+        {
+            return Scan(vaultPath, VaultScanTarget.Sets);
+        }
+        
+        internal List<TuneNote> Scan(string vaultPath, VaultScanTarget target)
+        {
+            var searchPath = VaultStructure.GetScanDirectory(vaultPath, target);
 
             if (!Directory.Exists(searchPath))
             {
-                throw new DirectoryNotFoundException($"Vault path not found: {searchPath}");
+                throw new DirectoryNotFoundException($"Required scan path not found: {searchPath}");
             }
 
             var files = Directory.GetFiles(searchPath, "*.md", SearchOption.AllDirectories);
@@ -36,7 +44,10 @@ namespace CloudAwesome.FolkTune.Services
 
             foreach (var file in files)
             {
-                if (file.Contains(".obsidian")) continue;
+                if (IsInHiddenDirectory(file))
+                {
+                    continue;
+                }
 
                 var tune = ParseFile(file);
                 if (tune != null)
@@ -48,7 +59,7 @@ namespace CloudAwesome.FolkTune.Services
             return tunes;
         }
 
-        public TuneNote ParseFile(string filePath)
+        public TuneNote? ParseFile(string filePath)
         {
             var content = File.ReadAllText(filePath);
             var yamlContent = ExtractYaml(content);
@@ -67,17 +78,37 @@ namespace CloudAwesome.FolkTune.Services
             }
             catch (Exception ex)
             {
-                // TODO: Log warning about malformed YAML
                 Console.WriteLine($"[WARNING] Failed to parse YAML in {filePath}: {ex.Message}");
                 return null;
             }
+        }
+
+        private static bool IsInHiddenDirectory(string filePath)
+        {
+            var directory = new DirectoryInfo(Path.GetDirectoryName(filePath) ?? string.Empty);
+
+            while (directory.Exists)
+            {
+                if (directory.Name.StartsWith(".", StringComparison.Ordinal))
+                {
+                    return true;
+                }
+
+                directory = directory.Parent;
+                if (directory == null)
+                {
+                    break;
+                }
+            }
+
+            return false;
         }
 
         private string ExtractYaml(string content)
         {
             if (!content.StartsWith("---")) return null;
 
-            var endOfYaml = content.IndexOf("---", 3);
+            var endOfYaml = content.IndexOf("---", 3, StringComparison.Ordinal);
             if (endOfYaml == -1) return null;
 
             return content.Substring(3, endOfYaml - 3).Trim();
