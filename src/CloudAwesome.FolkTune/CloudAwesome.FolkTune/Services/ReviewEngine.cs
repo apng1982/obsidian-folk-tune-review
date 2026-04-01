@@ -62,6 +62,7 @@ namespace CloudAwesome.FolkTune.Services
 
             var (store, created) = _storeManager.LoadOrCreate(resolvedStorePath);
             _store = store;
+            _storePath = resolvedStorePath;
 
             return new ReviewEngineLoadResult
             {
@@ -217,13 +218,17 @@ namespace CloudAwesome.FolkTune.Services
         {
             return score switch
             {
-                0 => 4,
-                1 => 10,
-                2 => 30,
-                3 => 90,
-                4 => 180,
-                5 => 365,
-                _ => 365
+                0 => 1,
+                1 => 3,
+                2 => 7,
+                3 => 14,
+                4 => 30,
+                5 => 60,
+                6 => 120,
+                7 => 180,
+                8 => 270,
+                9 => 365,
+                _ => 366
             };
         }
     }
