@@ -96,15 +96,25 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     AnsiConsole.MarkupLine("[gray]'m' to mark this tune as Maintained by regular sessions (e.g. tunes that are played every week)[/]");
                     AnsiConsole.MarkupLine("[gray]'n' to submit add Notes to this tune's review[/]");
                     AnsiConsole.WriteLine();
-                    AnsiConsole.MarkupLine("[gray]or a number from 0-5 on how well the review went. 0 - Very poor, 5 - Excellent[/]");
+                    AnsiConsole.MarkupLine("[gray]or a number from 0-5 on how well the review went. 0 - Very poor, 9 - Excellent[/]");
+                    AnsiConsole.MarkupLine("[gray]    0 = 1 day[/]");
+                    AnsiConsole.MarkupLine("[gray]    1 = 3 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    2 = 7 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    3 = 14 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    4 = 30 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    5 = 60 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    6 = 120 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    7 = 180 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    8 = 270 days[/]");
+                    AnsiConsole.MarkupLine("[gray]    9 = 365 days[/]");
                     AnsiConsole.Write(new Rule());
                     
-                    var prompt = new TextPrompt<string>("Type: 0-5, s, x, m, n")
+                    var prompt = new TextPrompt<string>("Type: 0-9, s, x, m, n")
                         .Validate(input => 
                         {
                             return input.ToLower() switch
                             {
-                                "0" or "1" or "2" or "3" or "4" or "5" or "s" or "x" or "m" or "n" => ValidationResult.Success(),
+                                "0" or "1" or "2" or "3" or "4" or "5" or "6" or "7" or "8" or "9" or "s" or "x" or "m" or "n" => ValidationResult.Success(),
                                 _ => ValidationResult.Error("[red]Invalid action[/]")
                             };
                         });
