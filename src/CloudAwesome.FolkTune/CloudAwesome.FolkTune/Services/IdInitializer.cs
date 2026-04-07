@@ -1,7 +1,4 @@
-using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+using System.IO.Abstractions;
 using System.Text.RegularExpressions;
 using YamlDotNet.Serialization;
 
@@ -9,6 +6,17 @@ namespace CloudAwesome.FolkTune.Services
 {
     public class IdInitializer
     {
+        private readonly IDeserializer _deserializer;
+        private readonly IFileSystem _fileSystem;
+
+        public IdInitializer(IFileSystem? fileSystem = null)
+        {
+            _fileSystem = fileSystem ?? new FileSystem();
+            _deserializer = new DeserializerBuilder()
+                .IgnoreUnmatchedProperties()
+                .Build();
+        }
+        
         public class InitOptions
         {
             public string VaultPath { get; set; } = string.Empty;
@@ -26,28 +34,19 @@ namespace CloudAwesome.FolkTune.Services
             public bool Success { get; set; } = true;
         }
 
-        private readonly IDeserializer _deserializer;
-
-        public IdInitializer()
-        {
-            _deserializer = new DeserializerBuilder()
-                .IgnoreUnmatchedProperties()
-                .Build();
-        }
-
         public InitResult Initialize(InitOptions options)
         {
             var result = new InitResult();
             var searchPath = string.IsNullOrEmpty(options.SubFolder) 
                 ? options.VaultPath 
-                : Path.Combine(options.VaultPath, options.SubFolder);
+                : _fileSystem.Path.Combine(options.VaultPath, options.SubFolder);
 
-            if (!Directory.Exists(searchPath))
+            if (!_fileSystem.Directory.Exists(searchPath))
             {
                 throw new DirectoryNotFoundException($"Path not found: {searchPath}");
             }
 
-            var allFiles = Directory.GetFiles(searchPath, "*.md", SearchOption.AllDirectories)
+            var allFiles = _fileSystem.Directory.GetFiles(searchPath, "*.md", SearchOption.AllDirectories)
                 .Where(f => !f.Contains(".obsidian"))
                 .ToList();
 
@@ -56,7 +55,7 @@ namespace CloudAwesome.FolkTune.Services
 
             foreach (var file in allFiles)
             {
-                var content = File.ReadAllText(file);
+                var content = _fileSystem.File.ReadAllText(file);
                 var yaml = ExtractYaml(content);
                 if (yaml == null)
                 {
@@ -136,7 +135,7 @@ namespace CloudAwesome.FolkTune.Services
 
         private void AddOrUpdateId(string filePath)
         {
-            var content = File.ReadAllText(filePath);
+            var content = _fileSystem.File.ReadAllText(filePath);
             var endOfYaml = content.IndexOf("---", 3);
             if (endOfYaml == -1) return;
 
@@ -154,7 +153,7 @@ namespace CloudAwesome.FolkTune.Services
             yaml = yaml.Trim();
             var newYaml = "\n" + yaml + (string.IsNullOrWhiteSpace(yaml) ? "" : "\n") + $"id: \"{newId}\"\n";
 
-            File.WriteAllText(filePath, "---" + newYaml + body);
+            _fileSystem.File.WriteAllText(filePath, "---" + newYaml + body);
         }
     }
 }
