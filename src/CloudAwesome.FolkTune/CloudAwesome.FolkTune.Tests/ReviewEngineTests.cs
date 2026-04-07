@@ -56,7 +56,7 @@ namespace CloudAwesome.FolkTune.Tests
             var record = _store.Tunes["123"];
             Assert.That(record.Score, Is.EqualTo(3));
             Assert.That(record.Notes, Is.EqualTo("Some notes"));
-            Assert.That(record.IntervalDays, Is.EqualTo(90));
+            Assert.That(record.IntervalDays, Is.EqualTo(14)); 
             Assert.That(record.Last, Is.EqualTo(DateTime.Today.ToString("yyyy-MM-dd")));
         }
 

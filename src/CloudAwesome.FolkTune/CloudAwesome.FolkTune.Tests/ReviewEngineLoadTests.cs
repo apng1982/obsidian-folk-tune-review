@@ -216,7 +216,7 @@ namespace CloudAwesome.FolkTune.Tests
             Directory.CreateDirectory(tunesPath);
             Directory.CreateDirectory(setsPath);
 
-            File.WriteAllText(Path.Combine(tunesPath, "The Scholar.md"), """
+            File.WriteAllText(Path.Combine(tunesPath, "Scholar.md"), """
                                                                          ---
                                                                          id: "tune-scholar"
                                                                          learn: false
@@ -224,7 +224,7 @@ namespace CloudAwesome.FolkTune.Tests
                                                                          body
                                                                          """);
 
-            File.WriteAllText(Path.Combine(setsPath, "The Scholar Set.md"), """
+            File.WriteAllText(Path.Combine(setsPath, "Scholar Set.md"), """
                                                                             ---
                                                                             id: "set-scholar"
                                                                             learn: false
@@ -243,7 +243,7 @@ namespace CloudAwesome.FolkTune.Tests
             var matches = engine.FindTunes("Scholar");
 
             Assert.That(matches.Count, Is.EqualTo(1));
-            Assert.That(matches.Single().Title, Is.EqualTo("The Scholar"));
+            Assert.That(matches.Single().Title, Is.EqualTo("Scholar"));
         }
     }
 }
