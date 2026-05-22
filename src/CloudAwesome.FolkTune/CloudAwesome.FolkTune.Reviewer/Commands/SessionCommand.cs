@@ -37,18 +37,7 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                 }
 
                 var tunesToMark = new List<TuneNote>();
-
-                if (!string.IsNullOrEmpty(settings.Origin))
-                {
-                    var options = new SelectionService.SelectionOptions
-                    {
-                        Count = settings.Count ?? int.MaxValue,
-                        OriginFilter = settings.Origin,
-                        Today = date
-                    };
-                    tunesToMark.AddRange(engine.GetReviewCandidates(options));
-                }
-
+                
                 if (!string.IsNullOrEmpty(settings.FromFile))
                 {
                     if (!File.Exists(settings.FromFile))

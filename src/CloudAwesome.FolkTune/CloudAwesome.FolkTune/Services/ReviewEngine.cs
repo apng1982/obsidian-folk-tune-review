@@ -1,6 +1,3 @@
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using CloudAwesome.FolkTune.Models;
 using CloudAwesome.FolkTune.Helpers;
 

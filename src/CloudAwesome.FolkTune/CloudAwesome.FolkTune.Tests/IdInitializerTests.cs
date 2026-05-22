@@ -1,4 +1,3 @@
-using System.IO.Abstractions;
 using System.IO.Abstractions.TestingHelpers;
 using CloudAwesome.FolkTune.Services;
 
@@ -16,7 +15,7 @@ namespace CloudAwesome.FolkTune.Tests
         {
             _fileSystem = new MockFileSystem();
             
-            _tempVaultPath = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
+            _tempVaultPath = _fileSystem.Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString());
             _fileSystem.Directory.CreateDirectory(_tempVaultPath);
             _initializer = new IdInitializer(_fileSystem);
         }
@@ -99,7 +98,7 @@ namespace CloudAwesome.FolkTune.Tests
         [Test]
         public void AddOrUpdateId_EnsuresIdIsLastProperty()
         {
-            var filePath = Path.Combine(_tempVaultPath, "LastProperty.md");
+            var filePath = _fileSystem.Path.Combine(_tempVaultPath, "LastProperty.md");
             _fileSystem.File.WriteAllText(filePath, "---\ntitle: Test\norigin: [[Some/Where]]\n---\nBody");
 
             _initializer.Initialize(new IdInitializer.InitOptions { VaultPath = _tempVaultPath, SubFolder = "" });
