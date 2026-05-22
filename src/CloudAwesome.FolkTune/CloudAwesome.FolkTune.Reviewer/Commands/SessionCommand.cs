@@ -14,6 +14,8 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
 {
     public class SessionCommand : Command<SessionSettings>
     {
+        public sealed record SessionFileEntry(string Query, int? Score, bool MarkSessionMaintained);
+
         public override int Execute(CommandContext context, SessionSettings settings, CancellationToken cancellationToken)
         {
             try
@@ -36,7 +38,7 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     }
                 }
 
-                var tunesToMark = new List<TuneNote>();
+                var tunesToMark = new List<SessionTuneUpdate>();
                 
                 if (!string.IsNullOrEmpty(settings.FromFile))
                 {
@@ -47,17 +49,27 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     }
 
                     var lines = File.ReadAllLines(settings.FromFile);
-                    foreach (var line in lines)
+                    for (var i = 0; i < lines.Length; i++)
                     {
-                        if (string.IsNullOrWhiteSpace(line)) continue;
-                        var found = engine.FindTunes(line.Trim());
+                        var line = lines[i];
+                        if (!TryParseSessionFileLine(line, out var entry, out var error))
+                        {
+                            if (string.IsNullOrEmpty(error)) continue;
+
+                            AnsiConsole.MarkupLine($"[red]Invalid session file line {i + 1}: {error}[/]");
+                            return 1;
+                        }
+
+                        if (entry == null) continue;
+
+                        var found = engine.FindTunes(entry.Query);
                         if (found.Any())
                         {
-                            tunesToMark.AddRange(found);
+                            tunesToMark.AddRange(found.Select(t => new SessionTuneUpdate(t, entry)));
                         }
                         else
                         {
-                            AnsiConsole.MarkupLine($"[yellow]Warning: Could not find tune by ID or Title: {line}[/]");
+                            AnsiConsole.MarkupLine($"[yellow]Warning: Could not find tune by ID or Title: {entry.Query}[/]");
                         }
                     }
                 }
@@ -68,15 +80,34 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                     return 0;
                 }
 
-                tunesToMark = tunesToMark.DistinctBy(t => t.Id).ToList();
+                tunesToMark = tunesToMark
+                    .Where(t => !string.IsNullOrEmpty(t.Tune.Id))
+                    .DistinctBy(t => t.Tune.Id)
+                    .ToList();
 
                 AnsiConsole.MarkupLine($"Marking [green]{tunesToMark.Count}[/] tunes as played on [blue]{date:yyyy-MM-dd}[/].");
                 
-                foreach (var tune in tunesToMark)
+                foreach (var update in tunesToMark)
                 {
-                    if (string.IsNullOrEmpty(tune.Id)) continue;
-                    engine.MarkAsPlayed(tune.Id, date);
-                    AnsiConsole.MarkupLine($"- {tune.Title}");
+                    var tune = update.Tune;
+                    var entry = update.Entry;
+
+                    if (entry.MarkSessionMaintained)
+                    {
+                        engine.MarkAsPlayed(tune.Id, date);
+                        engine.MarkAsSessionMaintained(tune.Id);
+                        AnsiConsole.MarkupLine($"- {tune.Title} [yellow](session-maintained)[/]");
+                    }
+                    else if (entry.Score.HasValue)
+                    {
+                        engine.MarkAsPlayed(tune.Id, date, entry.Score.Value);
+                        AnsiConsole.MarkupLine($"- {tune.Title} [blue](score {entry.Score.Value})[/]");
+                    }
+                    else
+                    {
+                        engine.MarkAsPlayed(tune.Id, date);
+                        AnsiConsole.MarkupLine($"- {tune.Title}");
+                    }
                 }
 
                 if (!settings.DryRun)
@@ -97,5 +128,50 @@ namespace CloudAwesome.FolkTune.Reviewer.Commands
                 return 1;
             }
         }
+
+        public static bool TryParseSessionFileLine(string line, out SessionFileEntry? entry, out string? error)
+        {
+            entry = null;
+            error = null;
+
+            if (string.IsNullOrWhiteSpace(line))
+            {
+                return false;
+            }
+
+            var trimmed = line.Trim();
+            var separatorIndex = trimmed.LastIndexOf(',');
+            if (separatorIndex < 0)
+            {
+                entry = new SessionFileEntry(trimmed, null, false);
+                return true;
+            }
+
+            var query = trimmed[..separatorIndex].Trim();
+            var action = trimmed[(separatorIndex + 1)..].Trim();
+
+            if (string.IsNullOrWhiteSpace(query))
+            {
+                error = "missing tune title or ID";
+                return false;
+            }
+
+            if (action.Equals("m", StringComparison.OrdinalIgnoreCase))
+            {
+                entry = new SessionFileEntry(query, null, true);
+                return true;
+            }
+
+            if (action.Length == 1 && action[0] >= '0' && action[0] <= '9')
+            {
+                entry = new SessionFileEntry(query, action[0] - '0', false);
+                return true;
+            }
+
+            error = $"expected rating 0-9 or m after comma, but found '{action}'";
+            return false;
+        }
+
+        private sealed record SessionTuneUpdate(TuneNote Tune, SessionFileEntry Entry);
     }
 }

@@ -25,6 +25,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\CloudAwesome.FolkTune\CloudAwesome.FolkTune.csproj" />
+      <ProjectReference Include="..\CloudAwesome.FolkTune.Reviewer\CloudAwesome.FolkTune.Reviewer.csproj" />
     </ItemGroup>
 
 </Project>

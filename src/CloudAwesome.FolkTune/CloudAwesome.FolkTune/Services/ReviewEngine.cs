@@ -100,9 +100,19 @@ namespace CloudAwesome.FolkTune.Services
 
         public void MarkAsPlayed(string id, DateTime date)
         {
+            MarkAsPlayed(id, date, null);
+        }
+
+        public void MarkAsPlayed(string id, DateTime date, int? score)
+        {
             EnsureTuneRecord(id);
             var record = _store.Tunes[id];
             record.SessionLast = date.ToString("yyyy-MM-dd");
+            if (score.HasValue)
+            {
+                record.Score = score.Value;
+                record.IntervalDays = MapScoreToInterval(score.Value);
+            }
         }
 
         public void ExcludeTune(string id)

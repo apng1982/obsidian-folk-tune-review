@@ -71,6 +71,20 @@ namespace CloudAwesome.FolkTune.Tests
         }
 
         [Test]
+        public void MarkAsPlayed_WithScore_UpdatesSessionLastScoreAndInterval()
+        {
+            var date = new DateTime(2025, 12, 25);
+            _engine.MarkAsPlayed("123", date, 4);
+
+            Assert.That(_store.Tunes.ContainsKey("123"), Is.True);
+            var record = _store.Tunes["123"];
+            Assert.That(record.SessionLast, Is.EqualTo("2025-12-25"));
+            Assert.That(record.Score, Is.EqualTo(4));
+            Assert.That(record.IntervalDays, Is.EqualTo(30));
+            Assert.That(record.Last, Is.Null);
+        }
+
+        [Test]
         public void ExcludeTune_SetsExcludeToTrue()
         {
             _engine.ExcludeTune("123");
